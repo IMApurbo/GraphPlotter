@@ -1,26 +1,60 @@
-import matplotlib.pyplot as plt
+import customtkinter as ctk
+from tkinter import filedialog
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+# Function to plot the straight line
 def plot_straight_line(x_values, y_values):
-    # Ensure that the line starts from the origin
-    x_values = [0] + x_values
-    y_values = [0] + y_values
-    
-    # Plot the straight line passing through the points
-    plt.plot(x_values, y_values, marker='o', linestyle='-')
-    
-    plt.title('Straight Line with Data Points')
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
+    fig = Figure(figsize=(6, 4))
+    plot = fig.add_subplot(111)
+    plot.plot([0] + x_values, [0] + y_values, marker='o', linestyle='-')
+    plot.set_title('Straight Line with Data Points')
+    plot.set_xlabel('X-axis')
+    plot.set_ylabel('Y-axis')
+    plot.grid(True)
+    return fig
 
-    plt.grid(True)
-    plt.show()
+# Function to handle the plotting
+def on_plot():
+    x_input = x_entry.get()
+    y_input = y_entry.get()
+    x_values = list(map(float, x_input.split(',')))
+    y_values = list(map(float, y_input.split(',')))
+    global fig
+    fig = plot_straight_line(x_values, y_values)
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
 
-# Input values for x and y axes
-x_input = input("Enter values for x (separated by comma): ")
-y_input = input("Enter values for y (separated by comma): ")
+# Function to save the plot as PNG
+def save_plot():
+    file_path = filedialog.asksaveasfilename(defaultextension='.png',
+                                             filetypes=[("PNG files", "*.png")])
+    if file_path:
+        fig.savefig(file_path)
 
-# Convert input strings to lists of floats
-x_values = [float(x) for x in x_input.split(',')]
-y_values = [float(y) for y in y_input.split(',')]
+# Main application window
+app = ctk.CTk()
+app.title("Plot Straight Line GUI")
 
-plot_straight_line(x_values, y_values)
+# Frame for the plot
+plot_frame = ctk.CTkFrame(master=app, width=800, height=400)
+plot_frame.pack(pady=20)
+
+# Entries for x and y values
+x_entry = ctk.CTkEntry(master=app,width=300, placeholder_text="Enter values for x (separated by comma)")
+x_entry.pack(pady=10)
+
+y_entry = ctk.CTkEntry(master=app,width=300, placeholder_text="Enter values for y (separated by comma)")
+y_entry.pack(pady=10)
+
+# Plot button
+plot_button = ctk.CTkButton(master=app, text="Plot", command=on_plot)
+plot_button.pack(pady=10)
+
+# Save as PNG button
+save_button = ctk.CTkButton(master=app, text="Save as PNG", command=save_plot)
+save_button.pack(pady=10)
+
+# Run the main application loop
+app.mainloop()
