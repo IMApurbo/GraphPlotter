@@ -1,10 +1,15 @@
-import matplotlib.pyplot as plt
+import customtkinter as ctk
+from customtkinter import filedialog
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
+# Function to plot the graph
 def plot_graph(x_values, y_values):
+    fig = Figure(figsize=(6, 4))
+    plot = fig.add_subplot(111)
+    
     # Add a constant term to ensure that the curve passes through the origin
-    x_values = np.array(x_values)
-    y_values = np.array(y_values)
     x_values = np.insert(x_values, 0, 0)
     y_values = np.insert(y_values, 0, 0)
     
@@ -16,25 +21,67 @@ def plot_graph(x_values, y_values):
     x_curve = np.linspace(0, max(x_values), 100)
 
     # Plot the curve
-    plt.plot(x_curve, p(x_curve), label='Curve Line')
+    plot.plot(x_curve, p(x_curve), label='Curve Line')
 
     # Plot the data points
-    plt.scatter(x_values[1:], y_values[1:], marker='o', color='red', label='Data Points')
+    plot.scatter(x_values[1:], y_values[1:], marker='o', color='red', label='Data Points')
 
-    plt.title('Curve Line with Data Points')
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
+    plot.set_title('Curve Line with Data Points')
+    plot.set_xlabel('X-axis')
+    plot.set_ylabel('Y-axis')
 
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    plot.legend()
+    plot.grid(True)
+    
+    return fig
 
-# Input values for x and y axes
-x_input = input("Enter values for x (separated by comma): ")
-y_input = input("Enter values for y (separated by comma): ")
+# Function to handle the plotting
+def on_plot():
+    x_input = x_entry.get()
+    y_input = y_entry.get()
+    x_values = [float(x) for x in x_input.split(',')]
+    y_values = [float(y) for y in y_input.split(',')]
+    
+    global fig
+    fig = plot_graph(np.array(x_values), np.array(y_values))
+    
+    # Create a canvas and display the plot
+    global canvas
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
 
-# Convert input strings to lists of floats
-x_values = [float(x) for x in x_input.split(',')]
-y_values = [float(y) for y in y_input.split(',')]
+# Function to save the plot as PNG
+def save_plot():
+    file_path = filedialog.asksaveasfilename(defaultextension='.png',
+                                             filetypes=[("PNG files", "*.png")])
+    if file_path:
+        fig.savefig(file_path)
 
-plot_graph(x_values, y_values)
+# Main application window
+app = ctk.CTk()
+app.title("Curve Line Plot GUI")
+app.geometry('800x600')
+
+
+# Frame for the plot
+plot_frame = ctk.CTkFrame(master=app, width=800, height=400)
+plot_frame.pack(pady=20)
+
+# Entries for x and y values
+x_entry = ctk.CTkEntry(master=app, placeholder_text="Enter values for x (separated by comma)", width=400)
+x_entry.pack(pady=10)
+
+y_entry = ctk.CTkEntry(master=app, placeholder_text="Enter values for y (separated by comma)", width=400)
+y_entry.pack(pady=10)
+
+# Plot button
+plot_button = ctk.CTkButton(master=app, text="Plot", command=on_plot)
+plot_button.pack(pady=10)
+
+# Save as PNG button
+save_button = ctk.CTkButton(master=app, text="Save as PNG", command=save_plot)
+save_button.pack(pady=10)
+
+# Run the main application loop
+app.mainloop()
